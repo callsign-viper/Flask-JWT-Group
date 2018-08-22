@@ -1,0 +1,23 @@
+os: linux
+sudo: false
+language: python
+
+cache:
+  - pip
+  - pip3
+
+python:
+  - "2.7"
+  - "3.5"
+  - "3.6"
+  - "3.6-dev"
+  - "3.7-dev"
+
+install:
+  - pip3 install -r requirements.txt
+
+script: pytest test.py
+# after_success: codecov..?
+
+notifications:
+  email: false
