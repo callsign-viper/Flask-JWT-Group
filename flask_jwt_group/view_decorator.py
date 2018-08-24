@@ -34,7 +34,7 @@ def jwt_required(group=None):
                 abort(422)
             if 'exp' not in decoded_token:
                 abort(422)
-            if 'jit' not in decoded_token:
+            if 'jti' not in decoded_token:
                 abort(422)
             if 'identity' not in decoded_token:
                 abort(422)
