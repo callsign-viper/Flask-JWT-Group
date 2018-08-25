@@ -6,6 +6,8 @@ _DEFAULT_SETTINGS = {
     'JWT_TOKEN_LOCATION': ['headers'],
     'JWT_HEADER_NAME': 'Authorization',
     'JWT_HEADER_TYPE': 'Bearer',
+    'JWT_IDENTITY_KEY': 'identity',
+    'JWT_GROUP_KEY': 'group',
     
     # expires
     'JWT_ACCESS_TOKEN_EXPIRES': datetime.timedelta(minutes=15),

@@ -1,7 +1,8 @@
 import pytest
 import jwt
-from flask import Flask
+from flask import Flask, jsonify
 
+from flask_jwt_group import raw_jwt_claims, jwt_identity, jwt_group
 from flask_jwt_group.jwt_manager import JWTManager
 from flask_jwt_group.util import create_access_token
 from flask_jwt_group.view_decorator import jwt_required
@@ -14,9 +15,13 @@ def flask_app():
     JWTManager(app)
 
     @app.route('/required', methods=['GET'])
-    @jwt_required(['student'])
+    @jwt_required('student', 'admin')
     def required():
-        return 'Be decorated by jwt_required', 200
+        identity, group = str(jwt_identity), str(jwt_group)
+        return jsonify({
+            'identity': identity,
+            'group': group
+        }), 200
 
     return app
 
@@ -50,7 +55,8 @@ def test_jwt_required(flask_app):
     # has valid token
     resp = test_client.get('/required', headers={'Authorization': 'Bearer {}'.format(token)})
     assert resp.status_code == 200
-    assert resp.data.decode('utf-8') == 'Be decorated by jwt_required'
+    assert resp.json['identity'] == 'flouie74'
+    assert resp.json['group'] == 'student'
 
     # non exist token in header
     resp = test_client.get('/required', headers=None)

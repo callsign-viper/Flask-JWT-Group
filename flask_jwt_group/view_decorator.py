@@ -6,10 +6,10 @@ from flask import current_app, request, _request_ctx_stack, abort
 # from helper import _decode_jwt
 
 
-def jwt_required(group=None):
+def jwt_required(*group):
     """
 
-    :param group: must be list
+    :param group: Groups required for authentication (variable argument)
     :return:
     """
     def decorator(fn):
@@ -17,8 +17,7 @@ def jwt_required(group=None):
         def wrapper(*args, **kwargs):
             header_name = current_app.config['JWT_HEADER_NAME']
             jwt_header = request.headers.get(header_name, None)
-            secret_key = current_app.config['JWT_SECRET_KEY']
-            algorithm = current_app.config['JWT_ALGORITHM']
+            configs = current_app.config
 
             if not jwt_header:
                 abort(400)
@@ -26,7 +25,8 @@ def jwt_required(group=None):
             # if type(group) is not list:
             #     abort(400)
 
-            decoded_token = jwt.decode(jwt_header.split()[1], key=secret_key, algorithms=algorithm)
+            decoded_token = jwt.decode(jwt_header.split()[1],
+                                       key=configs['JWT_SECRET_KEY'], algorithm=configs['JWT_ALGORITHM'])
 
             if 'iat' not in decoded_token:
                 abort(422)
@@ -36,11 +36,11 @@ def jwt_required(group=None):
                 abort(422)
             if 'jti' not in decoded_token:
                 abort(422)
-            if 'identity' not in decoded_token:
+            if configs['JWT_IDENTITY_KEY'] not in decoded_token:
                 abort(422)
             if 'type' not in decoded_token or decoded_token['type'] != 'access':
                 abort(422)
-            if decoded_token['group'] not in group:
+            if configs['JWT_GROUP_KEY'] not in decoded_token or decoded_token['group'] not in group:
                 abort(422)
 
             _request_ctx_stack.top.jwt = decoded_token

@@ -8,17 +8,16 @@ from flask import current_app
 def create_access_token(identity, group=None):
     now = datetime.datetime.utcnow()
     jti = str(uuid.uuid4())
-    secret = current_app.config['JWT_SECRET_KEY']
-    algorithm = current_app.config['JWT_ALGORITHM']
+    configs = current_app.config
     token = {
         'iat': now,
         'nbf': now,
-        'exp': now + current_app.config['JWT_ACCESS_TOKEN_EXPIRES'],
+        'exp': now + configs['JWT_ACCESS_TOKEN_EXPIRES'],
         'jti': jti,
-        'identity': identity,
+        configs['JWT_IDENTITY_KEY']: identity,
         'type': 'access',
-        'group': group
+        configs['JWT_GROUP_KEY']: group
     }
 
-    return jwt.encode(token, secret, algorithm=algorithm).decode('utf-8')
+    return jwt.encode(token, key=configs['JWT_SECRET_KEY'], algorithm=configs['JWT_ALGORITHM']).decode('utf-8')
 
