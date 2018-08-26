@@ -5,7 +5,7 @@ _DEFAULT_SETTINGS = {
     'JWT_ALGORITHM': 'HS256',
     'JWT_TOKEN_LOCATION': ['headers'],
     'JWT_HEADER_NAME': 'Authorization',
-    'JWT_HEADER_TYPE': 'Bearer',
+    'JWT_HEADER_PREFIX': 'Bearer',
     'JWT_IDENTITY_KEY': 'identity',
     'JWT_GROUP_KEY': 'group',
     
