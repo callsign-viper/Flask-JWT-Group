@@ -13,9 +13,7 @@ python:
   - "3.6-dev"
   - "3.7-dev"
 
-install:
-  - pip install -r requirements.txt
-  - pip3 install -r requirements.txt
+install: pip install -r requirements.txt
 
 script: pytest test.py
 # after_success: codecov..?
