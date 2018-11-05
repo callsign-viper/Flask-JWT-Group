@@ -5,29 +5,30 @@ import jwt
 from flask import current_app
 
 
-def _create_token(identity, group=None, type='access'):
+def _create_token(identity, group=None, token_type='access', expires=None):
+    configs = current_app.config
     now = datetime.utcnow()
     jti = str(uuid4())
-    configs = current_app.config
+    exp = configs['JWT_ACCESS_TOKEN_EXPIRES'] if not expires else expires
 
     token = {
         'iat': now,
         'nbf': now,
-        'exp': now + configs['JWT_ACCESS_TOKEN_EXPIRES'],
+        'exp': now + exp,
         'jti': jti,
-        configs['JWT_IDENTITY_KEY']: identity,
         # default: 'identity'
-        configs['JWT_GROUP_KEY']: group,
+        configs['JWT_IDENTITY_KEY']: identity,
         # default: 'group'
-        'type': type,
+        configs['JWT_GROUP_KEY']: group,
+        'type': token_type,
     }
 
     return jwt.encode(token, key=configs['JWT_SECRET_KEY'], algorithm=configs['JWT_ALGORITHM']).decode('utf-8')
 
 
-def create_access_token(identity, group=None):
-    return _create_token(identity, group)
+def create_access_token(identity, group=None, expires=None):
+    return _create_token(identity, group=group, expires=expires)
 
 
-def create_refresh_token(identity, group=None):
-    return _create_token(identity, group, 'refresh')
+def create_refresh_token(identity, group=None, expires=None):
+    return _create_token(identity, group=group, token_type='refresh', expires=expires)
