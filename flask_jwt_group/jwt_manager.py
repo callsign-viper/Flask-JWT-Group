@@ -1,31 +1,31 @@
 import datetime
 
 
-_DEFAULT_SETTINGS = {
-    'JWT_ALGORITHM': 'HS256',
-    'JWT_TOKEN_LOCATION': ['headers'],
-    'JWT_HEADER_NAME': 'Authorization',
-    'JWT_HEADER_PREFIX': 'Bearer',
-    'JWT_IDENTITY_KEY': 'identity',
-    'JWT_GROUP_KEY': 'group',
-    
-    # expires
-    'JWT_ACCESS_TOKEN_EXPIRES': datetime.timedelta(minutes=15),
-    'JWT_REFRESH_TOKEN_EXPIRES': datetime.timedelta(days=30),
-
-    'JWT_SECRET_KEY': None
-}
-
-
 class JWTManager:
     def __init__(self, app=None):
         if app is not None:
             self.init_app(app)
 
     def init_app(self, app):
-        # Set default configuration
-        for k, v in _DEFAULT_SETTINGS.items():
-            app.config.setdefault(k, v)
+        self._set_default_config(app)
+        self._set_error_handlers(app)
 
-    def _error_handlers(self, app):
+    @classmethod
+    def _set_default_config(cls, app):
+        app.config.setdefault('JWT_ALGORITHM', 'HS256')
+        app.config.setdefault('JWT_TOKEN_LOCATION', ['headers'])
+        app.config.setdefault('JWT_HEADER_NAME', 'Authorization')
+        app.config.setdefault('JWT_HEADER_PREFIX', 'JWT')
+        app.config.setdefault('JWT_IDENTITY_KEY', 'identity')
+
+        app.config.setdefault('JWT_GROUP_KEY', 'group')
+
+        # expires
+        app.config.setdefault('JWT_ACCESS_TOKEN_EXPIRES', datetime.timedelta(minutes=15))
+        app.config.setdefault('JWT_REFRESH_TOKEN_EXPIRES', datetime.timedelta(days=30))
+
+        app.config.setdefault('JWT_SECRET_KEY', None)
+
+    @classmethod
+    def _set_error_handlers(cls, app):
         pass

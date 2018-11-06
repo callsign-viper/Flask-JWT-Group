@@ -2,14 +2,14 @@ from datetime import datetime
 from uuid import uuid4
 
 import jwt
-from flask import current_app
+
+from flask_jwt_group.config import config
 
 
 def _create_token(identity, group=None, token_type='access', expires=None):
-    configs = current_app.config
     now = datetime.utcnow()
     jti = str(uuid4())
-    exp = configs['JWT_ACCESS_TOKEN_EXPIRES'] if not expires else expires
+    exp = config.access_token_expires if not expires else expires
 
     token = {
         'iat': now,
@@ -17,13 +17,13 @@ def _create_token(identity, group=None, token_type='access', expires=None):
         'exp': now + exp,
         'jti': jti,
         # default: 'identity'
-        configs['JWT_IDENTITY_KEY']: identity,
+        config.identity_key: identity,
         # default: 'group'
-        configs['JWT_GROUP_KEY']: group,
+        config.group_key: group,
         'type': token_type,
     }
 
-    return jwt.encode(token, key=configs['JWT_SECRET_KEY'], algorithm=configs['JWT_ALGORITHM']).decode('utf-8')
+    return jwt.encode(token, key=config._secret_key, algorithm=config.algorithm).decode('utf-8')
 
 
 def create_access_token(identity, group=None, expires=None):

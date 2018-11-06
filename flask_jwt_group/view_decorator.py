@@ -1,12 +1,14 @@
 from functools import wraps
 
 import jwt
-from flask import current_app, request, _request_ctx_stack, abort
+from flask import request, _request_ctx_stack, abort
+
+from flask_jwt_group.config import config
 
 
 def _get_encoded_token_from_request(configs):
-    header_name = configs['JWT_HEADER_NAME']
-    header_prefix = configs['JWT_HEADER_PREFIX']
+    header_name = configs.header_name
+    header_prefix = configs.header_prefix
 
     jwt_header = request.headers.get(header_name, None)
 
@@ -33,8 +35,8 @@ def _get_encoded_token_from_request(configs):
 def _decode_token_and_access_control(token, configs, token_type, expected_groups):
     decoded_token = jwt.decode(
         token,
-        key=configs['JWT_SECRET_KEY'],
-        algorithm=configs['JWT_ALGORITHM']
+        key=configs._secret_key,
+        algorithm=configs.algorithm
     )
 
     if 'iat' not in decoded_token:
@@ -45,9 +47,9 @@ def _decode_token_and_access_control(token, configs, token_type, expected_groups
         abort(422)
     if 'jti' not in decoded_token:
         abort(422)
-    if configs['JWT_IDENTITY_KEY'] not in decoded_token:
+    if configs.identity_key not in decoded_token:
         abort(422)
-    if configs['JWT_GROUP_KEY'] not in decoded_token or decoded_token['group'] not in expected_groups:
+    if configs.group_key not in decoded_token or decoded_token['group'] not in expected_groups:
         abort(422)
     if 'type' not in decoded_token or decoded_token['type'] != token_type:
         abort(422)
@@ -63,7 +65,7 @@ def jwt_required(*expected_groups):
     def decorator(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
-            configs = current_app.config
+            configs = config
 
             encoded_token = _get_encoded_token_from_request(configs)
 
@@ -87,7 +89,7 @@ def jwt_refresh_token_required(*expected_groups):
     def decorator(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
-            configs = current_app.config
+            configs = config
 
             encoded_token = _get_encoded_token_from_request(configs)
 

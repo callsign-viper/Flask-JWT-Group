@@ -53,7 +53,7 @@ def test_jwt_required(flask_app):
         different_groups_token = create_access_token('flouie74', 'teacher')
 
     # has valid token
-    resp = test_client.get('/required', headers={'Authorization': 'Bearer {}'.format(token)})
+    resp = test_client.get('/required', headers={'Authorization': 'JWT {}'.format(token)})
     assert resp.status_code == 200
     assert resp.json['identity'] == 'flouie74'
     assert resp.json['group'] == 'student'
@@ -66,5 +66,5 @@ def test_jwt_required(flask_app):
     # resp = test_client.get('/required', headers=create_refresh_token())
 
     # has different groups token
-    resp = test_client.get('/required', headers={'Authorization': 'Bearer {}'.format(different_groups_token)})
+    resp = test_client.get('/required', headers={'Authorization': 'JWT {}'.format(different_groups_token)})
     assert resp.status_code == 422
