@@ -4,7 +4,7 @@ from flask import Flask, jsonify
 
 from flask_jwt_group import raw_jwt_claims, jwt_identity, jwt_group
 from flask_jwt_group.jwt_manager import JWTManager
-from flask_jwt_group.util import create_access_token
+from flask_jwt_group.util import create_access_token, create_refresh_token
 from flask_jwt_group.view_decorator import jwt_required
 
 
@@ -63,7 +63,10 @@ def test_jwt_required(flask_app):
     assert resp.status_code == 400
 
     # has incorrect type token
-    # resp = test_client.get('/required', headers=create_refresh_token())
+    with flask_app.test_request_context():
+        refresh_token = create_refresh_token('flouie74', 'teacher')
+    resp = test_client.get('/required', headers={'Authorization': 'JWT {}'.format(refresh_token)})
+    assert resp.status_code == 422
 
     # has different groups token
     resp = test_client.get('/required', headers={'Authorization': 'JWT {}'.format(different_groups_token)})
