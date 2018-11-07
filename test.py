@@ -5,7 +5,7 @@ from flask import Flask, jsonify
 from flask_jwt_group import raw_jwt_claims, jwt_identity, jwt_group
 from flask_jwt_group.jwt_manager import JWTManager
 from flask_jwt_group.util import create_access_token, create_refresh_token
-from flask_jwt_group.view_decorator import jwt_required
+from flask_jwt_group.view_decorator import jwt_required, jwt_optional
 
 
 @pytest.fixture(scope="function")
@@ -22,6 +22,15 @@ def flask_app():
             'identity': identity,
             'group': group
         }), 200
+
+    @app.route('/optional', methods=['GET'])
+    @jwt_optional('student', 'admin')
+    def optional():
+        identity, group = str(jwt_identity), str(jwt_group)
+        return jsonify({
+            'identity': identity,
+            'group': group
+        })
 
     return app
 
@@ -54,6 +63,39 @@ def test_jwt_required(flask_app):
 
     # has valid token
     resp = test_client.get('/required', headers={'Authorization': 'JWT {}'.format(token)})
+    assert resp.status_code == 200
+    assert resp.json['identity'] == 'flouie74'
+    assert resp.json['group'] == 'student'
+
+    # non exist token in header
+    resp = test_client.get('/required', headers=None)
+    assert resp.status_code == 400
+
+    # has incorrect type token
+    with flask_app.test_request_context():
+        refresh_token = create_refresh_token('flouie74', 'teacher')
+    resp = test_client.get('/required', headers={'Authorization': 'JWT {}'.format(refresh_token)})
+    assert resp.status_code == 422
+
+    # has different groups token
+    resp = test_client.get('/required', headers={'Authorization': 'JWT {}'.format(different_groups_token)})
+    assert resp.status_code == 422
+
+
+def test_jwt_optional(flask_app):
+    test_client = flask_app.test_client()
+    with flask_app.test_request_context():
+        token = create_access_token('flouie74', 'student')
+        different_groups_token = create_access_token('flouie74', 'teacher')
+
+    # no authorization header
+    resp = test_client.get('/optional')
+    assert resp.status_code == 200
+    assert resp.json['identity'] == 'None'
+    assert resp.json['group'] == 'None'
+
+    # has valid token
+    resp = test_client.get('/optional', headers={'Authorization': 'JWT {}'.format(token)})
     assert resp.status_code == 200
     assert resp.json['identity'] == 'flouie74'
     assert resp.json['group'] == 'student'
