@@ -3,6 +3,7 @@ from uuid import uuid4
 
 import jwt
 
+from flask_jwt_group import jwt_identity
 from flask_jwt_group.config import config
 
 
@@ -32,3 +33,7 @@ def create_access_token(identity, group=None, expires=None):
 
 def create_refresh_token(identity, group=None, expires=None):
     return _create_token(identity, group=group, token_type='refresh', expires=expires)
+
+
+def get_jwt_identity():
+    return str(jwt_identity)

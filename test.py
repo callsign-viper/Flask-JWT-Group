@@ -2,9 +2,9 @@ import pytest
 import jwt
 from flask import Flask, jsonify
 
-from flask_jwt_group import raw_jwt_claims, jwt_identity, jwt_group
+from flask_jwt_group import jwt_identity, jwt_group
 from flask_jwt_group.jwt_manager import JWTManager
-from flask_jwt_group.util import create_access_token, create_refresh_token
+from flask_jwt_group.util import create_access_token, create_refresh_token, get_jwt_identity
 from flask_jwt_group.view_decorator import jwt_required, jwt_optional
 
 
@@ -27,9 +27,11 @@ def flask_app():
     @jwt_optional('student', 'admin')
     def optional():
         identity, group = str(jwt_identity), str(jwt_group)
+
         return jsonify({
             'identity': identity,
-            'group': group
+            'group': group,
+            'identity_from_func': get_jwt_identity()
         })
 
     return app
@@ -53,6 +55,18 @@ def test_creation_success(flask_app):
     assert 'type' in decoded
     assert decoded['type'] == 'access'
     assert decoded['group'] == 'student'
+
+
+def test_get_jwt_identity(flask_app):
+    test_client = flask_app.test_client()
+    with flask_app.test_request_context():
+        token = create_access_token('flouie74', 'student')
+
+    resp = test_client.get('/optional')
+    assert resp.json['identity_from_func'] == 'None'
+
+    resp = test_client.get('/optional', headers={'Authorization': 'JWT {}'.format(token)})
+    assert resp.json['identity_from_func'] == 'flouie74'
 
 
 def test_jwt_required(flask_app):
