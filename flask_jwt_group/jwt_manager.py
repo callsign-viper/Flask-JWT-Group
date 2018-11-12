@@ -15,7 +15,7 @@ class JWTManager:
         app.config.setdefault('JWT_ALGORITHM', 'HS256')
         app.config.setdefault('JWT_TOKEN_LOCATION', ['headers'])
         app.config.setdefault('JWT_HEADER_NAME', 'Authorization')
-        app.config.setdefault('JWT_HEADER_PREFIX', 'JWT')
+        app.config.setdefault('JWT_HEADER_PREFIX', 'Bearer')
         app.config.setdefault('JWT_IDENTITY_KEY', 'identity')
         app.config.setdefault('JWT_TIMEZONE', datetime.datetime.utcnow)
 

@@ -65,7 +65,7 @@ def test_get_jwt_identity(flask_app):
     resp = test_client.get('/optional')
     assert resp.json['identity_from_func'] == 'None'
 
-    resp = test_client.get('/optional', headers={'Authorization': 'JWT {}'.format(token)})
+    resp = test_client.get('/optional', headers={'Authorization': 'Bearer {}'.format(token)})
     assert resp.json['identity_from_func'] == 'flouie74'
 
 
@@ -76,7 +76,7 @@ def test_jwt_required(flask_app):
         different_groups_token = create_access_token('flouie74', 'teacher')
 
     # has valid token
-    resp = test_client.get('/required', headers={'Authorization': 'JWT {}'.format(token)})
+    resp = test_client.get('/required', headers={'Authorization': 'Bearer {}'.format(token)})
     assert resp.status_code == 200
     assert resp.json['identity'] == 'flouie74'
     assert resp.json['group'] == 'student'
@@ -88,11 +88,11 @@ def test_jwt_required(flask_app):
     # has incorrect type token
     with flask_app.test_request_context():
         refresh_token = create_refresh_token('flouie74', 'teacher')
-    resp = test_client.get('/required', headers={'Authorization': 'JWT {}'.format(refresh_token)})
+    resp = test_client.get('/required', headers={'Authorization': 'Bearer {}'.format(refresh_token)})
     assert resp.status_code == 422
 
     # has different groups token
-    resp = test_client.get('/required', headers={'Authorization': 'JWT {}'.format(different_groups_token)})
+    resp = test_client.get('/required', headers={'Authorization': 'Bearer {}'.format(different_groups_token)})
     assert resp.status_code == 422
 
 
@@ -109,7 +109,7 @@ def test_jwt_optional(flask_app):
     assert resp.json['group'] == 'None'
 
     # has valid token
-    resp = test_client.get('/optional', headers={'Authorization': 'JWT {}'.format(token)})
+    resp = test_client.get('/optional', headers={'Authorization': 'Bearer {}'.format(token)})
     assert resp.status_code == 200
     assert resp.json['identity'] == 'flouie74'
     assert resp.json['group'] == 'student'
@@ -121,9 +121,9 @@ def test_jwt_optional(flask_app):
     # has incorrect type token
     with flask_app.test_request_context():
         refresh_token = create_refresh_token('flouie74', 'teacher')
-    resp = test_client.get('/required', headers={'Authorization': 'JWT {}'.format(refresh_token)})
+    resp = test_client.get('/required', headers={'Authorization': 'Bearer {}'.format(refresh_token)})
     assert resp.status_code == 422
 
     # has different groups token
-    resp = test_client.get('/required', headers={'Authorization': 'JWT {}'.format(different_groups_token)})
+    resp = test_client.get('/required', headers={'Authorization': 'Bearer {}'.format(different_groups_token)})
     assert resp.status_code == 422
