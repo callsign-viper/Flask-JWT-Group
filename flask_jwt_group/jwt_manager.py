@@ -18,14 +18,12 @@ class JWTManager:
         app.config.setdefault('JWT_HEADER_PREFIX', 'Bearer')
         app.config.setdefault('JWT_IDENTITY_KEY', 'identity')
         app.config.setdefault('JWT_TIMEZONE', datetime.datetime.utcnow)
-
         app.config.setdefault('JWT_GROUP_KEY', 'group')
+        app.config.setdefault('JWT_SECRET_KEY', None)
 
         # expires
         app.config.setdefault('JWT_ACCESS_TOKEN_EXPIRES', datetime.timedelta(minutes=15))
         app.config.setdefault('JWT_REFRESH_TOKEN_EXPIRES', datetime.timedelta(days=30))
-
-        app.config.setdefault('JWT_SECRET_KEY', None)
 
     @classmethod
     def _set_error_handlers(cls, app):
