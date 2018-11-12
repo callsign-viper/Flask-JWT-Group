@@ -29,6 +29,10 @@ class _Config:
         return current_app.config['JWT_IDENTITY_KEY']
 
     @property
+    def jwt_timezone(self):
+        return current_app.config['JWT_TIMEZONE']()
+
+    @property
     def group_key(self):
         group_key = current_app.config['JWT_GROUP_KEY']
         if not isinstance(group_key, str) or group_key is None:

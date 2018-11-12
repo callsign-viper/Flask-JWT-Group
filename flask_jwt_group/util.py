@@ -8,7 +8,7 @@ from flask_jwt_group.config import config
 
 
 def _create_token(identity, group=None, token_type='access', expires=None):
-    now = datetime.utcnow()
+    now = config.jwt_timezone
     jti = str(uuid4())
     exp = config.access_token_expires if not expires else expires
 

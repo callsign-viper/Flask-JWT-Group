@@ -17,6 +17,7 @@ class JWTManager:
         app.config.setdefault('JWT_HEADER_NAME', 'Authorization')
         app.config.setdefault('JWT_HEADER_PREFIX', 'JWT')
         app.config.setdefault('JWT_IDENTITY_KEY', 'identity')
+        app.config.setdefault('JWT_TIMEZONE', datetime.datetime.utcnow)
 
         app.config.setdefault('JWT_GROUP_KEY', 'group')
 
