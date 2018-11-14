@@ -1,9 +1,8 @@
-from datetime import datetime
 from uuid import uuid4
 
 import jwt
 
-from flask_jwt_group import jwt_identity
+from flask_jwt_group import jwt_identity, jwt_group
 from flask_jwt_group.config import config
 
 
@@ -37,3 +36,7 @@ def create_refresh_token(identity, group=None, expires=None):
 
 def get_jwt_identity():
     return str(jwt_identity)
+
+
+def get_jwt_group():
+    return str(jwt_group)
