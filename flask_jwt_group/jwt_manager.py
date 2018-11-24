@@ -20,6 +20,8 @@ class JWTManager:
         app.config.setdefault('JWT_TIMEZONE', datetime.datetime.utcnow)
         app.config.setdefault('JWT_GROUP_KEY', 'group')
         app.config.setdefault('JWT_SECRET_KEY', None)
+        app.config.setdefault('JWT_BLACKLIST_ENABLED', False)
+        app.config.setdefault('JWT_BLACKLIST_TARGETS', ['access', 'refresh'])
 
         # expires
         app.config.setdefault('JWT_ACCESS_TOKEN_EXPIRES', datetime.timedelta(minutes=15))
