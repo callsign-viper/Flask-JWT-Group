@@ -6,7 +6,13 @@ class JWTManager:
         if app is not None:
             self.init_app(app)
 
+        self.blacklist = {}
+
     def init_app(self, app):
+        if not hasattr(app, 'extensions'):
+            app.extensions = {}
+        app.extensions['flask-jwt-group'] = self
+
         self._set_default_config(app)
         self._set_error_handlers(app)
 

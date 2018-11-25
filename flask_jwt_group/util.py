@@ -1,9 +1,11 @@
 from uuid import uuid4
 
 import jwt
+from flask import current_app
 
-from flask_jwt_group import jwt_identity, jwt_group
+from flask_jwt_group import jwt_identity, jwt_group, raw_jwt_claims
 from flask_jwt_group.config import config
+from flask_jwt_group.view_decorator import _decode_token_and_access_control
 
 
 def _create_token(identity, group=None, token_type='access', expires=None):
@@ -40,3 +42,10 @@ def get_jwt_identity():
 
 def get_jwt_group():
     return str(jwt_group)
+
+
+def _get_jwt_manager():
+    try:
+        return current_app.extensions['flask-jwt-group']
+    except KeyError:
+        raise RuntimeError("You must initialize JWT manager with Flask app instance before using this function")
