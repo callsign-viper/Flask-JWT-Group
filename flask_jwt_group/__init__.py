@@ -1,4 +1,4 @@
-from flask import _request_ctx_stack, _app_ctx_stack, current_app
+from flask import _request_ctx_stack
 from werkzeug.local import LocalProxy
 
 from flask_jwt_group.config import config

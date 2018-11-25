@@ -49,3 +49,9 @@ def _get_jwt_manager():
         return current_app.extensions['flask-jwt-group']
     except KeyError:
         raise RuntimeError("You must initialize JWT manager with Flask app instance before using this function")
+
+
+def add_token_to_blacklist():
+    raw = raw_jwt_claims
+    _get_jwt_manager().blacklist[raw['jti']] = raw['exp']
+    return raw

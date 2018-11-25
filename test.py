@@ -4,7 +4,8 @@ from flask import Flask, jsonify
 
 from flask_jwt_group import jwt_identity, jwt_group
 from flask_jwt_group.jwt_manager import JWTManager
-from flask_jwt_group.util import create_access_token, create_refresh_token, get_jwt_identity, get_jwt_group
+from flask_jwt_group.util import (create_access_token, create_refresh_token,
+                                  get_jwt_identity, get_jwt_group, add_token_to_blacklist, _get_jwt_manager)
 from flask_jwt_group.view_decorator import jwt_required, jwt_optional
 
 
@@ -18,9 +19,13 @@ def flask_app():
     @jwt_required('student', 'admin')
     def required():
         identity, group = str(jwt_identity), str(jwt_group)
+
+        add_token_to_blacklist()
+
         return jsonify({
             'identity': identity,
-            'group': group
+            'group': group,
+            'blacklist': _get_jwt_manager().blacklist
         }), 200
 
     @app.route('/optional', methods=['GET'])
@@ -146,3 +151,26 @@ def test_jwt_optional(flask_app):
     # has different groups token
     resp = test_client.get('/required', headers={'Authorization': '{0} {1}'.format(prefix, different_groups_token)})
     assert resp.status_code == 422
+
+
+def test_add_token_to_blacklist(flask_app):
+    secret_key = flask_app.config['JWT_SECRET_KEY']
+    algorithm = flask_app.config['JWT_ALGORITHM']
+    prefix = flask_app.config['JWT_HEADER_PREFIX']
+
+    test_client = flask_app.test_client()
+    with flask_app.test_request_context():
+        token = create_access_token('flouie74', 'student')
+        another_token = create_access_token('geni429', 'admin')
+
+    decoded_token = jwt.decode(token, key=secret_key, algorithms=algorithm)
+    decoded_another_token = jwt.decode(another_token, key=secret_key, algorithms=algorithm)
+
+    resp = test_client.get('/required', headers={'Authorization': '{0} {1}'.format(prefix, token)})
+    assert resp.status_code == 200
+    assert resp.json['blacklist'] == {decoded_token['jti']: decoded_token['exp']}
+
+    resp2 = test_client.get('/required', headers={'Authorization': '{0} {1}'.format(prefix, another_token)})
+    assert resp.status_code == 200
+    assert resp2.json['blacklist'] == {decoded_token['jti']: decoded_token['exp'],
+                                       decoded_another_token['jti']: decoded_another_token['exp']}
