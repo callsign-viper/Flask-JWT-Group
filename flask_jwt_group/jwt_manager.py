@@ -6,7 +6,8 @@ class JWTManager:
         if app is not None:
             self.init_app(app)
 
-        self.blacklist = {}
+        self.access_blacklist = {}
+        self.refresh_blacklist = {}
 
     def init_app(self, app):
         if not hasattr(app, 'extensions'):
@@ -27,6 +28,7 @@ class JWTManager:
         app.config.setdefault('JWT_GROUP_KEY', 'group')
         app.config.setdefault('JWT_SECRET_KEY', None)
         app.config.setdefault('JWT_BLACKLIST_ENABLED', False)
+        # Allow ['access'], ['refresh'], ['access', 'refresh']
         app.config.setdefault('JWT_BLACKLIST_TARGETS', ['access', 'refresh'])
 
         # expires

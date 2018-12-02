@@ -9,3 +9,6 @@ class NoAuthorizationHeaderError(JwtGroupException):
 class InvalidAuthorizationHeaderError(JwtGroupException):
     pass
 
+
+class BlacklistConfigError(JwtGroupException):
+    pass
