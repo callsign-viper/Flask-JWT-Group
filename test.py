@@ -34,6 +34,9 @@ def flask_app():
     def optional():
         identity, group = str(jwt_identity), str(jwt_group)
 
+        if jwt_identity:
+            add_token_to_blacklist()
+
         return jsonify({
             'identity': identity,
             'group': group,
@@ -44,9 +47,13 @@ def flask_app():
     @app.route('/refresh-required', methods=['GET'])
     @jwt_refresh_token_required('student', 'admin')
     def refresh_required():
+        identity, group = str(jwt_identity), str(jwt_group)
+
         add_token_to_blacklist()
 
         return jsonify({
+            'identity': identity,
+            'group': group,
             'blacklist': _get_jwt_manager().refresh_blacklist
         }), 200
 
@@ -127,6 +134,11 @@ def test_jwt_required(flask_app):
     resp = test_client.get('/required', headers={'Authorization': '{0} {1}'.format(prefix, different_groups_token)})
     assert resp.status_code == 422
 
+    # token is in blacklist
+    test_client.get('/required', headers={'Authorization': '{0} {1}'.format(prefix, token)})
+    resp = test_client.get('/required', headers={'Authorization': '{0} {1}'.format(prefix, token)})
+    assert resp.status_code == 403
+
 
 def test_jwt_optional(flask_app):
     prefix = flask_app.config['JWT_HEADER_PREFIX']
@@ -155,12 +167,52 @@ def test_jwt_optional(flask_app):
     # has incorrect type token
     with flask_app.test_request_context():
         refresh_token = create_refresh_token('flouie74', 'teacher')
-    resp = test_client.get('/required', headers={'Authorization': '{0} {1}'.format(prefix, refresh_token)})
+    resp = test_client.get('/optional', headers={'Authorization': '{0} {1}'.format(prefix, refresh_token)})
     assert resp.status_code == 422
 
     # has different groups token
-    resp = test_client.get('/required', headers={'Authorization': '{0} {1}'.format(prefix, different_groups_token)})
+    resp = test_client.get('/optional', headers={'Authorization': '{0} {1}'.format(prefix, different_groups_token)})
     assert resp.status_code == 422
+
+    # token is in blacklist
+    test_client.get('/optional', headers={'Authorization': '{0} {1}'.format(prefix, token)})
+    resp = test_client.get('/optional', headers={'Authorization': '{0} {1}'.format(prefix, token)})
+    assert resp.status_code == 403
+
+
+def test_jwt_refresh_required(flask_app):
+    prefix = flask_app.config['JWT_HEADER_PREFIX']
+
+    test_client = flask_app.test_client()
+    with flask_app.test_request_context():
+        token = create_refresh_token('flouie74', 'student')
+        different_groups_token = create_refresh_token('flouie74', 'teacher')
+
+    # has valid token
+    resp = test_client.get('/refresh-required', headers={'Authorization': '{0} {1}'.format(prefix, token)})
+    assert resp.status_code == 200
+    assert resp.json['identity'] == 'flouie74'
+    assert resp.json['group'] == 'student'
+
+    # non exist token in header
+    resp = test_client.get('/refresh-required', headers=None)
+    assert resp.status_code == 400
+
+    # has incorrect type token
+    with flask_app.test_request_context():
+        access_token = create_access_token('flouie74', 'teacher')
+    resp = test_client.get('/refresh-required', headers={'Authorization': '{0} {1}'.format(prefix, access_token)})
+    assert resp.status_code == 422
+
+    # has different groups token
+    resp = test_client.get('/refresh-required',
+                           headers={'Authorization': '{0} {1}'.format(prefix, different_groups_token)})
+    assert resp.status_code == 422
+
+    # token is in blacklist
+    test_client.get('/refresh-required', headers={'Authorization': '{0} {1}'.format(prefix, token)})
+    resp = test_client.get('/refresh-required', headers={'Authorization': '{0} {1}'.format(prefix, token)})
+    assert resp.status_code == 403
 
 
 def test_add_token_to_blacklist(flask_app):

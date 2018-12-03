@@ -168,14 +168,27 @@ def jwt_refresh_token_required(*expected_groups):
         def wrapper(*args, **kwargs):
             configs = config
 
-            encoded_token = _get_encoded_token_from_request(configs)
+            try:
+                encoded_token = _get_encoded_token_from_request(configs)
 
-            _request_ctx_stack.top.jwt = _decode_token_and_access_control(
-                encoded_token,
-                configs,
-                'refresh',
-                expected_groups
-            )
+            except NoAuthorizationHeaderError:
+                abort(400)
+
+            except InvalidAuthorizationHeaderError:
+                abort(422)
+
+            else:
+                decoded_token = _decode_token_and_access_control(
+                    encoded_token,
+                    configs,
+                    'refresh',
+                    expected_groups
+                )
+
+                if _check_token_is_in_blacklist(decoded_token):
+                    _request_ctx_stack.top.jwt = decoded_token
+                else:
+                    abort(403)
 
             return fn(*args, **kwargs)
         return wrapper
