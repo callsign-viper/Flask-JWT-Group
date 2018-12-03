@@ -1,3 +1,4 @@
+import datetime
 from functools import wraps
 
 import jwt
@@ -5,6 +6,7 @@ from flask import request, _request_ctx_stack, abort
 
 from flask_jwt_group.config import config
 from flask_jwt_group.exceptions import NoAuthorizationHeaderError, InvalidAuthorizationHeaderError
+from flask_jwt_group.util import _get_jwt_manager
 
 
 def _get_encoded_token_from_request(configs):
@@ -58,6 +60,27 @@ def _decode_token_and_access_control(token, configs, token_type, expected_groups
     return decoded_token
 
 
+def _update_blacklists():
+    now = int((datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).total_seconds())
+
+    _get_jwt_manager().access_blacklist = {jti: exp for jti, exp in _get_jwt_manager().access_blacklist.items()
+                                           if exp - now > 0}
+
+    _get_jwt_manager().refresh_blacklist = {jti: exp for jti, exp in _get_jwt_manager().refresh_blacklist.items()
+                                            if exp - now > 0}
+
+    return _get_jwt_manager().access_blacklist, _get_jwt_manager().refresh_blacklist
+
+
+def _check_token_is_in_blacklist(token):
+    access_blacklist, refresh_blacklist = _update_blacklists()
+
+    if token['jti'] in access_blacklist or token['jti'] in refresh_blacklist:
+        return False
+    else:
+        return True
+
+
 def jwt_required(*expected_groups):
     """
     This decorator to protect Flask Api Resource
@@ -80,12 +103,17 @@ def jwt_required(*expected_groups):
                 abort(422)
 
             else:
-                _request_ctx_stack.top.jwt = _decode_token_and_access_control(
+                decoded_token = _decode_token_and_access_control(
                     encoded_token,
                     configs,
                     'access',
                     expected_groups
                 )
+
+                if _check_token_is_in_blacklist(decoded_token):
+                    _request_ctx_stack.top.jwt = decoded_token
+                else:
+                    abort(403)
 
             return fn(*args, **kwargs)
         return wrapper
@@ -111,12 +139,17 @@ def jwt_optional(*expected_groups):
                 pass
 
             else:
-                _request_ctx_stack.top.jwt = _decode_token_and_access_control(
+                decoded_token = _decode_token_and_access_control(
                     encoded_token,
                     configs,
                     'access',
                     expected_groups
                 )
+
+                if _check_token_is_in_blacklist(decoded_token):
+                    _request_ctx_stack.top.jwt = decoded_token
+                else:
+                    abort(403)
 
             return fn(*args, **kwargs)
         return wrapper
