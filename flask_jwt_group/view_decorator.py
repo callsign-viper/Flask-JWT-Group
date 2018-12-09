@@ -72,7 +72,7 @@ def _update_blacklists():
     return _get_jwt_manager().access_blacklist, _get_jwt_manager().refresh_blacklist
 
 
-def _check_token_is_in_blacklist(token):
+def _is_token_in_blacklist(token):
     access_blacklist, refresh_blacklist = _update_blacklists()
 
     if token['jti'] in access_blacklist or token['jti'] in refresh_blacklist:
@@ -110,7 +110,7 @@ def jwt_required(*expected_groups):
                     expected_groups
                 )
 
-                if _check_token_is_in_blacklist(decoded_token):
+                if _is_token_in_blacklist(decoded_token):
                     _request_ctx_stack.top.jwt = decoded_token
                 else:
                     abort(403)
@@ -146,7 +146,7 @@ def jwt_optional(*expected_groups):
                     expected_groups
                 )
 
-                if _check_token_is_in_blacklist(decoded_token):
+                if _is_token_in_blacklist(decoded_token):
                     _request_ctx_stack.top.jwt = decoded_token
                 else:
                     abort(403)
@@ -185,7 +185,7 @@ def jwt_refresh_token_required(*expected_groups):
                     expected_groups
                 )
 
-                if _check_token_is_in_blacklist(decoded_token):
+                if _is_token_in_blacklist(decoded_token):
                     _request_ctx_stack.top.jwt = decoded_token
                 else:
                     abort(403)

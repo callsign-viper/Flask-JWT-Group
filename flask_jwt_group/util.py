@@ -51,7 +51,7 @@ def _get_jwt_manager():
         raise RuntimeError("You must initialize JWT manager with Flask app instance before using this function")
 
 
-def add_token_to_blacklist():
+def add_current_token_to_blacklist():
     if not config.blacklist_enabled:
         raise BlacklistConfigError
 

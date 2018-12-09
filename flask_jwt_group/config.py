@@ -72,7 +72,10 @@ class _Config:
     def blacklist_targets(self):
         targets = current_app.config['JWT_BLACKLIST_TARGETS']
         if not isinstance(targets, list):
-            targets = [targets]
+            if hasattr(targets, '__iter__'):
+                targets = list(targets)
+            else:
+                targets = [targets]
 
         for target in targets:
             if target not in ('access', 'refresh'):

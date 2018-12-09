@@ -5,7 +5,7 @@ from flask import Flask, jsonify
 from flask_jwt_group import jwt_identity, jwt_group
 from flask_jwt_group.jwt_manager import JWTManager
 from flask_jwt_group.util import (create_access_token, create_refresh_token,
-                                  get_jwt_identity, get_jwt_group, _get_jwt_manager, add_token_to_blacklist)
+                                  get_jwt_identity, get_jwt_group, _get_jwt_manager, add_current_token_to_blacklist)
 from flask_jwt_group.view_decorator import jwt_required, jwt_optional, jwt_refresh_token_required
 
 
@@ -21,7 +21,7 @@ def flask_app():
     def required():
         identity, group = str(jwt_identity), str(jwt_group)
 
-        add_token_to_blacklist()
+        add_current_token_to_blacklist()
 
         return jsonify({
             'identity': identity,
@@ -35,7 +35,7 @@ def flask_app():
         identity, group = str(jwt_identity), str(jwt_group)
 
         if jwt_identity:
-            add_token_to_blacklist()
+            add_current_token_to_blacklist()
 
         return jsonify({
             'identity': identity,
@@ -49,7 +49,7 @@ def flask_app():
     def refresh_required():
         identity, group = str(jwt_identity), str(jwt_group)
 
-        add_token_to_blacklist()
+        add_current_token_to_blacklist()
 
         return jsonify({
             'identity': identity,
