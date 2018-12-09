@@ -6,7 +6,14 @@ class JWTManager:
         if app is not None:
             self.init_app(app)
 
+        self.access_blacklist = {}
+        self.refresh_blacklist = {}
+
     def init_app(self, app):
+        if not hasattr(app, 'extensions'):
+            app.extensions = {}
+        app.extensions['flask-jwt-group'] = self
+
         self._set_default_config(app)
         self._set_error_handlers(app)
 
@@ -20,6 +27,9 @@ class JWTManager:
         app.config.setdefault('JWT_TIMEZONE', datetime.datetime.utcnow)
         app.config.setdefault('JWT_GROUP_KEY', 'group')
         app.config.setdefault('JWT_SECRET_KEY', None)
+        app.config.setdefault('JWT_BLACKLIST_ENABLED', False)
+        # Allow ['access'], ['refresh'], ['access', 'refresh']
+        app.config.setdefault('JWT_BLACKLIST_TARGETS', ['access', 'refresh'])
 
         # expires
         app.config.setdefault('JWT_ACCESS_TOKEN_EXPIRES', datetime.timedelta(minutes=15))

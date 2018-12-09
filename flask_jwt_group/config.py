@@ -64,5 +64,24 @@ class _Config:
 
         return key
 
+    @property
+    def blacklist_enabled(self):
+        return current_app.config['JWT_BLACKLIST_ENABLED']
+
+    @property
+    def blacklist_targets(self):
+        targets = current_app.config['JWT_BLACKLIST_TARGETS']
+        if not isinstance(targets, list):
+            if hasattr(targets, '__iter__'):
+                targets = list(targets)
+            else:
+                targets = [targets]
+
+        for target in targets:
+            if target not in ('access', 'refresh'):
+                raise RuntimeError("Blacklist's target should be between 'access' and 'refresh' only")
+
+        return targets
+
 
 config = _Config()
