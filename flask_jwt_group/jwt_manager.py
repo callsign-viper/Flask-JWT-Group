@@ -6,8 +6,8 @@ class JWTManager:
         if app is not None:
             self.init_app(app)
 
-        self.access_blacklist = {}
-        self.refresh_blacklist = {}
+        self.blacklisted_access_tokens = {}
+        self.blacklisted_refresh_tokens = {}
 
     def init_app(self, app):
         if not hasattr(app, 'extensions'):

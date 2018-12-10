@@ -63,19 +63,20 @@ def _decode_token_and_access_control(token, configs, token_type, expected_groups
 def _update_blacklists():
     now = int((datetime.datetime.utcnow() - datetime.datetime(1970, 1, 1)).total_seconds())
 
-    _get_jwt_manager().access_blacklist = {jti: exp for jti, exp in _get_jwt_manager().access_blacklist.items()
-                                           if exp - now > 0}
+    _get_jwt_manager().blacklisted_access_tokens = {
+        jti: exp for jti, exp in _get_jwt_manager().blacklisted_access_tokens.items() if exp - now > 0
+    }
 
-    _get_jwt_manager().refresh_blacklist = {jti: exp for jti, exp in _get_jwt_manager().refresh_blacklist.items()
-                                            if exp - now > 0}
+    _get_jwt_manager().blacklisted_refresh_tokens = {
+        jti: exp for jti, exp in _get_jwt_manager().blacklisted_refresh_tokens.items() if exp - now > 0}
 
-    return _get_jwt_manager().access_blacklist, _get_jwt_manager().refresh_blacklist
+    return _get_jwt_manager().blacklisted_access_tokens, _get_jwt_manager().blacklisted_refresh_tokens
 
 
 def _is_token_in_blacklist(token):
-    access_blacklist, refresh_blacklist = _update_blacklists()
+    blacklisted_access_tokens, blacklisted_refresh_tokens = _update_blacklists()
 
-    if token['jti'] in access_blacklist or token['jti'] in refresh_blacklist:
+    if token['jti'] in blacklisted_access_tokens or token['jti'] in blacklisted_refresh_tokens:
         return False
     else:
         return True

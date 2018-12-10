@@ -57,10 +57,10 @@ def add_current_token_to_blacklist():
 
     raw = raw_jwt_claims
     if raw['type'] == 'access' and 'access' in config.blacklist_targets:
-        _get_jwt_manager().access_blacklist[raw['jti']] = raw['exp']
+        _get_jwt_manager().blacklisted_access_tokens[raw['jti']] = raw['exp']
 
     elif raw['type'] == 'refresh' and 'refresh' in config.blacklist_targets:
-        _get_jwt_manager().refresh_blacklist[raw['jti']] = raw['exp']
+        _get_jwt_manager().blacklisted_refresh_tokens[raw['jti']] = raw['exp']
 
     else:
         raise BlacklistConfigError

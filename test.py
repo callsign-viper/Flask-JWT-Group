@@ -26,7 +26,7 @@ def flask_app():
         return jsonify({
             'identity': identity,
             'group': group,
-            'blacklist': _get_jwt_manager().access_blacklist
+            'blacklist': _get_jwt_manager().blacklisted_access_tokens
         }), 200
 
     @app.route('/optional', methods=['GET'])
@@ -54,7 +54,7 @@ def flask_app():
         return jsonify({
             'identity': identity,
             'group': group,
-            'blacklist': _get_jwt_manager().refresh_blacklist
+            'blacklist': _get_jwt_manager().blacklisted_refresh_tokens
         }), 200
 
     return app
@@ -232,7 +232,7 @@ def test_add_token_to_blacklist(flask_app):
     decoded_refresh_token = jwt.decode(refresh_token, key=secret_key, algorithms=algorithm)
     decoded_another_refresh_token = jwt.decode(another_refresh_token, key=secret_key, algorithms=algorithm)
 
-    # test access_blacklist
+    # test blacklisted_access_tokens
     resp = test_client.get('/required', headers={'Authorization': '{0} {1}'.format(prefix, access_token)})
     assert resp.status_code == 200
     assert resp.json['blacklist'] == {decoded_access_token['jti']: decoded_access_token['exp']}
@@ -242,7 +242,7 @@ def test_add_token_to_blacklist(flask_app):
     assert resp2.json['blacklist'] == {decoded_access_token['jti']: decoded_access_token['exp'],
                                        decoded_another_access_token['jti']: decoded_another_access_token['exp']}
 
-    # test refresh_blacklist
+    # test blacklisted_refresh_tokens
     refresh_resp = test_client.get('/refresh-required',
                                    headers={'Authorization': '{0} {1}'.format(prefix, refresh_token)})
     assert refresh_resp.status_code == 200
